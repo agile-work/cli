@@ -1,0 +1,28 @@
+<horizon:module version="1.0">
+    <definition languageCode="en" contentPackage="mdl_task" />
+    <tasks>
+        <task:createSchema code="mdl_tsk_tasks" name="Tasks" desc="List of tasks">
+            <task:createField type="date" code="start" name="Start" desc="Task start date" display="date_time" />
+            <task:createField type="date" code="finish" name="Finish" desc="Task description" display="date_time" />
+            <task:createColumn type="jsonb" code="mdl_tsk_assigments" />
+        </task:createSchema>
+        <task:createSchema code="mdl_tsk_baselines" name="Baselines" desc="List of baselines">
+            <task:createField type="lookup" code="resource" name="Resource" desc="Task assigned resource" display="select_single">
+                <dataset code="ds_resources" label="full_name" value="username" />
+                <fields>
+                    <field code="username" name="Code" />
+                    <field code="full_name" name="Resource" />
+                    <field code="active" name="Active">
+                        <filter type="constant" value="true" operator="=" readonly="false" />
+                    </field>
+                </fields>
+            </task:createField> 
+        </task:createSchema>
+        <task:createFeature name="task" desc="Task management">
+            <permission code="view" name="View All" desc="view all tasks" />
+            <permission code="edit" name="Edit" desc="Edit tasks" />
+            <permission code="create" name="Create" desc="Create new tasks" />
+            <permission code="delete" name="Delete" desc="Delete tasks" />
+        </task:createFeature>
+    </tasks>
+</horizon:module> 
