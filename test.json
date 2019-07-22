@@ -4,7 +4,6 @@
   "params": null,
   "tasks": [
     {
-      "task": "fd82bf6b-abd6-11e9-8df0-641c679459cd",
       "sequence": 0,
       "exec_action": "api_post",
       "exec_address": "{system.api_url}/core/admin/schemas",
@@ -16,7 +15,6 @@
       }
     },
     {
-      "task": "fd82c518-abd6-11e9-8df0-641c679459cd",
       "sequence": 1,
       "exec_action": "api_post",
       "exec_address": "{system.api_url}/core/admin/schemas/mdl_tsk_tasks/fields",
@@ -36,7 +34,6 @@
       }
     },
     {
-      "task": "fd82c561-abd6-11e9-8df0-641c679459cd",
       "sequence": 1,
       "exec_action": "api_post",
       "exec_address": "{system.api_url}/core/admin/schemas/mdl_tsk_tasks/fields",
@@ -56,7 +53,6 @@
       }
     },
     {
-      "task": "fd82c5a0-abd6-11e9-8df0-641c679459cd",
       "sequence": 1,
       "exec_action": "api_post",
       "exec_address": "{system.api_url}/core/admin/schemas/mdl_tsk_tasks/fields",
@@ -75,14 +71,12 @@
       }
     },
     {
-      "task": "fd82c5af-abd6-11e9-8df0-641c679459cd",
       "sequence": 1,
       "exec_action": "exec_query",
       "exec_address": "local",
       "exec_payload": "ALTER TABLE mdl_tsk_tasks ADD COLUMN mdl_tsk_assigments jsonb"
     },
     {
-      "task": "fd82c5e1-abd6-11e9-8df0-641c679459cd",
       "sequence": 0,
       "exec_action": "api_post",
       "exec_address": "{system.api_url}/core/admin/schemas",
@@ -94,7 +88,6 @@
       }
     },
     {
-      "task": "fd82c621-abd6-11e9-8df0-641c679459cd",
       "sequence": 1,
       "exec_action": "api_post",
       "exec_address": "{system.api_url}/core/admin/schemas//fields",
@@ -109,7 +102,6 @@
       }
     },
     {
-      "task": "fd82c79f-abd6-11e9-8df0-641c679459cd",
       "sequence": 0,
       "exec_action": "api_post",
       "exec_address": "{system.api_url}/core/admin/modules/mdl_tsk_tasks/features",

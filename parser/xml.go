@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 
 	"github.com/beevik/etree"
-	uuid "github.com/satori/go.uuid"
 )
 
 const (
@@ -24,14 +23,6 @@ const (
 	fieldAttachment string = "attachment"
 )
 
-func newUUID() string {
-	u2, err := uuid.NewV1()
-	if err != nil {
-		return ""
-	}
-	return u2.String()
-}
-
 type Job struct {
 	LanguageCode string                 `json:"language_code"`
 	ContentCode  string                 `json:"content_code"`
@@ -40,7 +31,6 @@ type Job struct {
 }
 
 type Task struct {
-	Name        string      `json:"task"`
 	Sequence    int         `json:"sequence"`
 	ExecAction  string      `json:"exec_action"`
 	ExecAddress string      `json:"exec_address"`
@@ -113,7 +103,6 @@ func createSchema(job *Job, element *etree.Element, taskSequence int) error {
 
 	task := Task{
 		Sequence:    taskSequence,
-		Name:        newUUID(),
 		ExecAction:  executeAPIPost,
 		ExecAddress: "{system.api_url}/core/admin/schemas",
 		ExecPayload: (json.RawMessage)([]byte(fmt.Sprintf(`{
@@ -191,7 +180,6 @@ func createField(job *Job, element *etree.Element, taskSequence int) error {
 
 	task := Task{
 		Sequence:    taskSequence,
-		Name:        newUUID(),
 		ExecAction:  executeAPIPost,
 		ExecAddress: fmt.Sprintf("{system.api_url}/core/admin/schemas/%s/fields", elmSchemaCode),
 		ExecPayload: (json.RawMessage)([]byte(payload)),
@@ -212,7 +200,6 @@ func createColumn(job *Job, element *etree.Element, taskSequence int) error {
 
 	task := Task{
 		Sequence:    taskSequence,
-		Name:        newUUID(),
 		ExecAction:  executeQuery,
 		ExecAddress: "local",
 		ExecPayload: fmt.Sprintf(`ALTER TABLE %s ADD COLUMN %s %s`, elmTable, elmCode, elmType),
@@ -244,7 +231,6 @@ func createFeature(job *Job, element *etree.Element, taskSequence int) error {
 
 	task := Task{
 		Sequence:    taskSequence,
-		Name:        newUUID(),
 		ExecAction:  executeAPIPost,
 		ExecAddress: fmt.Sprintf("{system.api_url}/core/admin/modules/%s/features", elmModuleCode),
 		ExecPayload: (json.RawMessage)([]byte(fmt.Sprintf(`{
