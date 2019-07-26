@@ -1,29 +1,81 @@
 <horizon:module version="1.0">
-    <definition languageCode="en" contentPackage="mdl_task" />
-    <tasks>
-        <task:createSchema code="mdl_tsk_tasks" name="Tasks" desc="List of tasks">
-            <task:createField schemaCode="mdl_tsk_tasks" type="date" code="start" name="Start" desc="Task start date" display="date_time" />
-            <task:createField schemaCode="mdl_tsk_tasks" type="date" code="finish" name="Finish" desc="Task description" display="date_time" />
-            <task:createField schemaCode="mdl_tsk_tasks" type="number" code="teste_number" name="Teste Number" desc="Teste Number description" display="number" decimals="2" />
-            <task:createColumn table="mdl_tsk_tasks" type="jsonb" code="mdl_tsk_assigments" />
-        </task:createSchema>
-        <task:createSchema code="mdl_tsk_baselines" name="Baselines" desc="List of baselines">
-            <task:createField type="lookup" code="resource" name="Resource" desc="Task assigned resource" display="select_single">
-                <dataset code="ds_resources" label="full_name" value="username" />
-                <fields>
-                    <field code="username" name="Code" />
-                    <field code="full_name" name="Resource" />
-                    <field code="active" name="Active">
-                        <filter type="constant" value="true" operator="=" readonly="false" />
-                    </field>
-                </fields>
-            </task:createField> 
-        </task:createSchema>
-        <task:createFeature moduleCode="mdl_tsk_tasks" code="baseline" name="Task" desc="Task management">
-            <permission code="view" name="View All" />
-            <permission code="edit" name="Edit" />
-            <permission code="create" name="Create" />
-            <permission code="delete" name="Delete" />
-        </task:createFeature>
-    </tasks>
+  <definition languageCode="en-us" contentPackage="mdl_task" />
+  <tasks>
+    <task:createContent code="mdl_task" name="Pacote de conteúdo de Tasks" desc="Pacote de conteúdo" prefix="tsk" module="true" system="true">
+      <task:createSchema code="tasks" name="Tasks" desc="List of tasks">
+        <task:createField schemaCode="sys_mdl_tsk_tasks" type="date" code="start" name="Start" desc="Task start date" display="date_time" />
+        <task:createField schemaCode="sys_mdl_tsk_tasks" type="date" code="finish" name="Finish" desc="Task description" display="date_time" />
+        <task:createField schemaCode="sys_mdl_tsk_tasks" type="number" code="teste_number" name="Teste Number" desc="Teste Number description" display="number" decimals="2" />
+        <task:createField schemaCode="sys_mdl_tsk_tasks" type="number" code="teste_number_scale" name="Teste Number Scale" desc="Teste Number description" display="number" decimals="2" scale="ds_userstory_scale">
+          <hh>
+            <pf value="0.10" />
+            <point value="0.25" />
+          </hh>
+          <point>
+            <hh value="10" />
+            <pf value="2.5" />
+          </point>
+          <pf>
+            <hh value="4" />
+            <point value="0.4" />
+          </pf>
+        </task:createField>
+        <task:createColumn table="sys_mdl_tsk_tasks" type="jsonb" code="mdl_tsk_assignments" />
+      </task:createSchema>
+      <task:createSchema code="baselines" name="Baselines" desc="List of baselines">
+        <task:createField schemaCode="sys_mdl_tsk_tasks" type="lookup" code="resource" name="Resource" desc="Task assigned resource" display="select_single">
+          <dataset code="ds_resources" label="full_name" value="username" type="dynamic">
+            <fields>
+              <field code="username" name="Code" />
+              <field code="full_name" name="Resource" />
+              <field code="active" name="Active">
+                <filter type="constant" value="true" operator="=" readonly="false" />
+              </field>
+            </fields>
+          </dataset>
+        </task:createField>
+        <task:createField schemaCode="sys_mdl_tsk_tasks" type="lookup" code="resource_security" name="Resource Security" desc="Task assigned resource" display="select_multiple">
+          <dataset code="ds_resources" label="full_name" value="username" type="security">
+            <groups>group_01,group_02,group_03</groups>
+            <fields>
+              <field code="username" name="Code" />
+              <field code="full_name" name="Resource" />
+              <field code="active" name="Active">
+                <filter type="constant" value="true" operator="=" readonly="false" />
+              </field>
+            </fields>
+          </dataset>
+        </task:createField>
+      </task:createSchema>
+      <task:createDataset type="dynamic" code="ds_test_dataset" name="Test Dataset" desc="Test Dataset Description">
+        <query>
+          select username, first_name || ' ' || last_name as full_name from core_users where active = {{param:filter_active:boolean}}
+        </query>
+        <task:createField schemaCode="sys_mdl_tsk_tasks" type="lookup" code="users" name="Usuários" desc="Lista de usuários" display="select_single">
+          <dataset code="ds_test_dataset" label="full_name" value="username" type="dynamic">
+            <fields>
+              <field code="username" name="Code" />
+              <field code="full_name" name="Full Name" />
+            </fields>
+            <params>
+              <param code="filter_active" type="constant" value="true" />
+            </params>
+          </dataset>
+        </task:createField>
+      </task:createDataset>
+      <task:createDataset type="static" code="ds_test_dataset_static" name="Test Dataset - Static" desc="Test Dataset Description">
+        <options>
+          <option code="created" name="Criado" />
+          <option code="in_progress" name="Em andamento" />
+          <option code="closed" name="Encerrado" />
+        </options>
+      </task:createDataset>
+      <task:createFeature moduleCode="mdl_tsk_tasks" code="baseline" name="Task" desc="Task management">
+        <permission code="view" name="View All" />
+        <permission code="edit" name="Edit" />
+        <permission code="create" name="Create" />
+        <permission code="delete" name="Delete" />
+      </task:createFeature>
+    </task:createContent>
+  </tasks>
 </horizon:module> 
