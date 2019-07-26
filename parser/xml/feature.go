@@ -20,13 +20,11 @@ func createFeature(x *xml, element *etree.Element, taskSequence int, path string
 	x.addTranslation([]string{path, "name", elmName})
 	x.addTranslation([]string{path, "description", elmDescription})
 
-	elmName, err := x.loadTranslation(path, "name", elmName)
-	if err != nil {
+	if err := x.loadTranslation(path, "name", &elmName); err != nil {
 		return err
 	}
 
-	elmDescription, err = x.loadTranslation(path, "description", elmDescription)
-	if err != nil {
+	if err := x.loadTranslation(path, "description", &elmDescription); err != nil {
 		return err
 	}
 
@@ -36,8 +34,7 @@ func createFeature(x *xml, element *etree.Element, taskSequence int, path string
 
 		pathPermission := fmt.Sprintf("%s/permission[@code='%s']", path, code)
 
-		name, err := x.loadTranslation(pathPermission, "name", name)
-		if err != nil {
+		if err := x.loadTranslation(pathPermission, "name", &name); err != nil {
 			return err
 		}
 

@@ -111,19 +111,19 @@ func (x *xml) addTranslation(data []string) {
 	x.Translations.CSVStructure = append(x.Translations.CSVStructure, data)
 }
 
-func (x *xml) loadTranslation(path, code, value string) (string, error) {
+func (x *xml) loadTranslation(path, code string, value *string) error {
 	translation := x.Translations.Availables[path+code]
 	if len(translation) > 0 {
 		translationByte, err := json.MarshalIndent(translation, "", "  ")
 		if err != nil {
-			return value, err
+			return err
 		}
-		value = string(translationByte)
+		*value = string(translationByte)
 	} else {
-		value = fmt.Sprintf(`{ "%s": "%s" }`, x.LanguageCode, value)
+		*value = fmt.Sprintf(`{ "%s": "%s" }`, x.LanguageCode, *value)
 	}
 
-	return value, nil
+	return nil
 }
 
 func (x *xml) createTranslation(fileName string) error {

@@ -1,0 +1,411 @@
+{
+  "version": "1.0",
+  "language_code": "en-us",
+  "content_code": "mdl_task",
+  "params": null,
+  "tasks": [
+    {
+      "sequence": 0,
+      "exec_action": "api_post",
+      "exec_address": "{system.api_host}/api/v1/core/admin/contents",
+      "exec_payload": {
+        "code": "mdl_task",
+        "name": {
+          "en-us": "Pacote de conteúdo de Tasks"
+        },
+        "description": {
+          "en-us": "Pacote de conteúdo"
+        },
+        "prefix": "tsk",
+        "is_module": true,
+        "is_system": true
+      }
+    },
+    {
+      "sequence": 1,
+      "exec_action": "api_post",
+      "exec_address": "{system.api_host}/api/v1/core/admin/schemas",
+      "exec_payload": {
+        "code": "tasks",
+        "content_code": "mdl_task",
+        "name": {
+          "en-us": "Tasks"
+        },
+        "description": {
+          "en-us": "List of tasks"
+        }
+      }
+    },
+    {
+      "sequence": 2,
+      "exec_action": "api_post",
+      "exec_address": "{system.api_host}/api/v1/core/admin/schemas/sys_mdl_tsk_tasks/fields",
+      "exec_payload": {
+        "code": "start",
+        "content_code": "mdl_task",
+        "schema_code": "sys_mdl_tsk_tasks",
+        "field_type": "date",
+        "name": {
+          "en-us": "Start"
+        },
+        "description": {
+          "en-us": "Task start date"
+        },
+        "active": true,
+        "definitions": {
+          "display": "date_time",
+          "format": "DD/MM/YYYY HH:MM"
+        }
+      }
+    },
+    {
+      "sequence": 2,
+      "exec_action": "api_post",
+      "exec_address": "{system.api_host}/api/v1/core/admin/schemas/sys_mdl_tsk_tasks/fields",
+      "exec_payload": {
+        "code": "finish",
+        "content_code": "mdl_task",
+        "schema_code": "sys_mdl_tsk_tasks",
+        "field_type": "date",
+        "name": {
+          "en-us": "Finish"
+        },
+        "description": {
+          "en-us": "Task description"
+        },
+        "active": true,
+        "definitions": {
+          "display": "date_time",
+          "format": "DD/MM/YYYY HH:MM"
+        }
+      }
+    },
+    {
+      "sequence": 2,
+      "exec_action": "api_post",
+      "exec_address": "{system.api_host}/api/v1/core/admin/schemas/sys_mdl_tsk_tasks/fields",
+      "exec_payload": {
+        "code": "teste_number",
+        "content_code": "mdl_task",
+        "schema_code": "sys_mdl_tsk_tasks",
+        "field_type": "number",
+        "name": {
+          "en-us": "Teste Number"
+        },
+        "description": {
+          "en-us": "Teste Number description"
+        },
+        "active": true,
+        "definitions": {
+          "display": "number",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "sequence": 2,
+      "exec_action": "api_post",
+      "exec_address": "{system.api_host}/api/v1/core/admin/schemas/sys_mdl_tsk_tasks/fields",
+      "exec_payload": {
+        "code": "teste_number_scale",
+        "content_code": "mdl_task",
+        "schema_code": "sys_mdl_tsk_tasks",
+        "field_type": "number",
+        "name": {
+          "en-us": "Teste Number Scale"
+        },
+        "description": {
+          "en-us": "Teste Number description"
+        },
+        "active": true,
+        "definitions": {
+          "display": "number",
+          "decimals": 2,
+          "scale": {
+            "dataset_code": "ds_userstory_scale",
+            "aggr_rates": {
+              "hh": {
+                "pf": "0.10",
+                "point": "0.25"
+              },
+              "pf": {
+                "hh": "4",
+                "point": "0.4"
+              },
+              "point": {
+                "hh": "10",
+                "pf": "2.5"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "sequence": 2,
+      "exec_action": "exec_query",
+      "exec_address": "local",
+      "exec_payload": "ALTER TABLE sys_mdl_tsk_tasks ADD COLUMN mdl_tsk_assignments jsonb"
+    },
+    {
+      "sequence": 1,
+      "exec_action": "api_post",
+      "exec_address": "{system.api_host}/api/v1/core/admin/schemas",
+      "exec_payload": {
+        "code": "baselines",
+        "content_code": "mdl_task",
+        "name": {
+          "en-us": "Baselines"
+        },
+        "description": {
+          "en-us": "List of baselines"
+        }
+      }
+    },
+    {
+      "sequence": 2,
+      "exec_action": "api_post",
+      "exec_address": "{system.api_host}/api/v1/core/admin/schemas/sys_mdl_tsk_tasks/fields",
+      "exec_payload": {
+        "code": "resource",
+        "content_code": "mdl_task",
+        "schema_code": "sys_mdl_tsk_tasks",
+        "field_type": "lookup",
+        "name": {
+          "en-us": "Resource"
+        },
+        "description": {
+          "en-us": "Task assigned resource"
+        },
+        "active": true,
+        "definitions": {
+          "display": "select_single",
+          "dataset_code": "ds_resources",
+          "lookup_type": "dynamic",
+          "lookup_label": "name",
+          "lookup_value": "code",
+          "lookup_fields": [
+            {
+              "code": "username",
+              "label": {
+                "en-us": "Code"
+              }
+            },
+            {
+              "code": "full_name",
+              "label": {
+                "en-us": "Resource"
+              }
+            },
+            {
+              "code": "active",
+              "filter": {
+                "operator": "=",
+                "readonly": false,
+                "value": "true",
+                "value_type": "constant"
+              },
+              "label": {
+                "en-us": "Active"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sequence": 2,
+      "exec_action": "api_post",
+      "exec_address": "{system.api_host}/api/v1/core/admin/schemas/sys_mdl_tsk_tasks/fields",
+      "exec_payload": {
+        "code": "resource_security",
+        "content_code": "mdl_task",
+        "schema_code": "sys_mdl_tsk_tasks",
+        "field_type": "lookup",
+        "name": {
+          "en-us": "Resource Security"
+        },
+        "description": {
+          "en-us": "Task assigned resource"
+        },
+        "active": true,
+        "definitions": {
+          "display": "select_multiple",
+          "dataset_code": "ds_resources",
+          "lookup_type": "security",
+          "lookup_label": "name",
+          "lookup_value": "code",
+          "lookup_fields": [
+            {
+              "code": "username",
+              "label": {
+                "en-us": "Code"
+              }
+            },
+            {
+              "code": "full_name",
+              "label": {
+                "en-us": "Resource"
+              }
+            },
+            {
+              "code": "active",
+              "filter": {
+                "operator": "=",
+                "readonly": false,
+                "value": "true",
+                "value_type": "constant"
+              },
+              "label": {
+                "en-us": "Active"
+              }
+            }
+          ],
+          "security_groups": [
+            "group_01",
+            "group_02",
+            "group_03"
+          ]
+        }
+      }
+    },
+    {
+      "sequence": 1,
+      "exec_action": "api_post",
+      "exec_address": "{system.api_host}/api/v1/core/admin/datasets",
+      "exec_payload": {
+        "code": "ds_test_dataset",
+        "name": {
+          "en-us": "Test Dataset"
+        },
+        "type": "dynamic",
+        "description": {
+          "en-us": "Test Dataset Description"
+        },
+        "definitions": {
+          "query": "select username, first_name || ' ' || last_name as full_name from core_users where active = {{param:filter_active:boolean}}"
+        }
+      }
+    },
+    {
+      "sequence": 2,
+      "exec_action": "api_post",
+      "exec_address": "{system.api_host}/api/v1/core/admin/schemas/sys_mdl_tsk_tasks/fields",
+      "exec_payload": {
+        "code": "users",
+        "content_code": "mdl_task",
+        "schema_code": "sys_mdl_tsk_tasks",
+        "field_type": "lookup",
+        "name": {
+          "en-us": "Usuários"
+        },
+        "description": {
+          "en-us": "Lista de usuários"
+        },
+        "active": true,
+        "definitions": {
+          "display": "select_single",
+          "dataset_code": "ds_test_dataset",
+          "lookup_type": "dynamic",
+          "lookup_label": "name",
+          "lookup_value": "code",
+          "lookup_fields": [
+            {
+              "code": "username",
+              "label": {
+                "en-us": "Code"
+              }
+            },
+            {
+              "code": "full_name",
+              "label": {
+                "en-us": "Full Name"
+              }
+            }
+          ],
+          "lookup_params": [
+            {
+              "code": "filter_active",
+              "value": "true",
+              "value_type": "constant"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sequence": 1,
+      "exec_action": "api_post",
+      "exec_address": "{system.api_host}/api/v1/core/admin/datasets",
+      "exec_payload": {
+        "code": "ds_test_dataset_static",
+        "name": {
+          "en-us": "Test Dataset - Static"
+        },
+        "type": "static",
+        "description": {
+          "en-us": "Test Dataset Description"
+        },
+        "definitions": {
+          "order": [
+            "created",
+            "in_progress",
+            "closed"
+          ],
+          "options": {
+            "closed": {
+              "active": "true",
+              "code": "closed",
+              "name": {
+                "en-us": "Encerrado"
+              }
+            },
+            "created": {
+              "active": "true",
+              "code": "created",
+              "name": {
+                "en-us": "Criado"
+              }
+            },
+            "in_progress": {
+              "active": "true",
+              "code": "in_progress",
+              "name": {
+                "en-us": "Em andamento"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "sequence": 1,
+      "exec_action": "api_post",
+      "exec_address": "{system.api_host}/api/v1/core/admin/modules/mdl_tsk_tasks/features",
+      "exec_payload": {
+        "baseline": {
+          "name": {
+            "en-us": "Task"
+          },
+          "description": {
+            "en-us": "Task management"
+          },
+          "permissions": {
+            "create": {
+              "en-us": "Create"
+            },
+            "delete": {
+              "en-us": "Delete"
+            },
+            "edit": {
+              "en-us": "Edit"
+            },
+            "view": {
+              "en-us": "View All"
+            }
+          }
+        }
+      }
+    }
+  ]
+}
