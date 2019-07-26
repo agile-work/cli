@@ -139,6 +139,8 @@ func createField(x *xml, element *etree.Element, taskSequence int, path string) 
 
 				pathField := fmt.Sprintf("%s/fields/field[@code='%s']", path, code)
 
+				x.addTranslation([]string{pathField, "name", name})
+
 				if err := x.loadTranslation(pathField, "name", &name); err != nil {
 					return err
 				}
@@ -155,7 +157,6 @@ func createField(x *xml, element *etree.Element, taskSequence int, path string) 
 					field["filter"] = filter
 				}
 				fields = append(fields, field)
-				x.addTranslation([]string{pathField, "name", name})
 			}
 			fieldsByte, err := json.MarshalIndent(fields, "", "  ")
 			if err != nil {

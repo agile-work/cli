@@ -48,6 +48,8 @@ func createDataset(x *xml, element *etree.Element, taskSequence int, path string
 
 			pathOption := fmt.Sprintf("%s/options/option[@code='%s']", path, code)
 
+			x.addTranslation([]string{pathOption, "name", name})
+
 			if err := x.loadTranslation(pathOption, "name", &name); err != nil {
 				return err
 			}
@@ -56,8 +58,6 @@ func createDataset(x *xml, element *etree.Element, taskSequence int, path string
 			option["name"] = (json.RawMessage)([]byte(name))
 			option["active"] = "true"
 			options[code] = option
-
-			x.addTranslation([]string{pathOption, "name", name})
 		}
 		ordersByte, err := json.MarshalIndent(orders, "", "  ")
 		if err != nil {

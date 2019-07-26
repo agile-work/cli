@@ -34,12 +34,13 @@ func createFeature(x *xml, element *etree.Element, taskSequence int, path string
 
 		pathPermission := fmt.Sprintf("%s/permission[@code='%s']", path, code)
 
+		x.addTranslation([]string{pathPermission, "name", name})
+
 		if err := x.loadTranslation(pathPermission, "name", &name); err != nil {
 			return err
 		}
 
 		permissions[code] = (json.RawMessage)([]byte(name))
-		x.addTranslation([]string{pathPermission, "name", name})
 	}
 	permissionsByte, err := json.MarshalIndent(permissions, "", "  ")
 	if err != nil {
