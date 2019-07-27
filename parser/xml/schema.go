@@ -8,16 +8,17 @@ import (
 	"github.com/beevik/etree"
 )
 
-func createSchema(x *xml, element *etree.Element, taskSequence int, path string) error {
+func createSchema(x *xml, element *etree.Element, taskSequence int, path string, createTranslation bool) error {
 	elmCode := element.SelectAttrValue("code", "")
 	elmName := element.SelectAttrValue("name", "")
 	elmDescription := element.SelectAttrValue("desc", "")
 
 	path = fmt.Sprintf("%s/createSchema[@code='%s']", path, elmCode)
 
-	x.addTranslation([]string{path, "name", elmName})
-	x.addTranslation([]string{path, "description", elmDescription})
-
+	if createTranslation {
+		x.addTranslation(path, "name", elmName)
+		x.addTranslation(path, "description", elmDescription)
+	}
 	if err := x.loadTranslation(path, "name", &elmName); err != nil {
 		return err
 	}
@@ -40,7 +41,7 @@ func createSchema(x *xml, element *etree.Element, taskSequence int, path string)
 
 	x.Tasks = append(x.Tasks, task)
 
-	if err := x.addTask(element.ChildElements(), taskSequence, path); err != nil {
+	if err := x.addTask(element.ChildElements(), taskSequence, path, createTranslation); err != nil {
 		return err
 	}
 	return nil

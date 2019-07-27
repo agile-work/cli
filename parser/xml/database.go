@@ -7,7 +7,7 @@ import (
 	"github.com/beevik/etree"
 )
 
-func createColumn(x *xml, element *etree.Element, taskSequence int, path string) error {
+func createColumn(x *xml, element *etree.Element, taskSequence int, path string, createTranslation bool) error {
 	elmTable := element.SelectAttrValue("table", "")
 	elmType := element.SelectAttrValue("type", "")
 	elmCode := element.SelectAttrValue("code", "")
@@ -23,7 +23,7 @@ func createColumn(x *xml, element *etree.Element, taskSequence int, path string)
 
 	x.Tasks = append(x.Tasks, task)
 
-	if err := x.addTask(element.ChildElements(), taskSequence, path); err != nil {
+	if err := x.addTask(element.ChildElements(), taskSequence, path, createTranslation); err != nil {
 		return err
 	}
 	return nil

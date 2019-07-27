@@ -11,7 +11,7 @@ import (
 	"github.com/beevik/etree"
 )
 
-func createField(x *xml, element *etree.Element, taskSequence int, path string) error {
+func createField(x *xml, element *etree.Element, taskSequence int, path string, createTranslation bool) error {
 	elmSchemaCode := element.SelectAttrValue("schemaCode", "")
 	elmType := element.SelectAttrValue("type", "")
 	elmCode := element.SelectAttrValue("code", "")
@@ -20,9 +20,10 @@ func createField(x *xml, element *etree.Element, taskSequence int, path string) 
 
 	path = fmt.Sprintf("%s/createField[@schemaCode='%s'][@code='%s']", path, elmSchemaCode, elmCode)
 
-	x.addTranslation([]string{path, "name", elmName})
-	x.addTranslation([]string{path, "description", elmDescription})
-
+	if createTranslation {
+		x.addTranslation(path, "name", elmName)
+		x.addTranslation(path, "description", elmDescription)
+	}
 	if err := x.loadTranslation(path, "name", &elmName); err != nil {
 		return err
 	}
@@ -139,8 +140,9 @@ func createField(x *xml, element *etree.Element, taskSequence int, path string) 
 
 				pathField := fmt.Sprintf("%s/fields/field[@code='%s']", path, code)
 
-				x.addTranslation([]string{pathField, "name", name})
-
+				if createTranslation {
+					x.addTranslation(pathField, "name", name)
+				}
 				if err := x.loadTranslation(pathField, "name", &name); err != nil {
 					return err
 				}
@@ -205,7 +207,7 @@ func createField(x *xml, element *etree.Element, taskSequence int, path string) 
 
 	x.Tasks = append(x.Tasks, task)
 
-	if err := x.addTask(element.ChildElements(), taskSequence, path); err != nil {
+	if err := x.addTask(element.ChildElements(), taskSequence, path, createTranslation); err != nil {
 		return err
 	}
 	return nil

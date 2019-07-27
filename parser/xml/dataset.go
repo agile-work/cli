@@ -9,7 +9,7 @@ import (
 	"github.com/beevik/etree"
 )
 
-func createDataset(x *xml, element *etree.Element, taskSequence int, path string) error {
+func createDataset(x *xml, element *etree.Element, taskSequence int, path string, createTranslation bool) error {
 	elmCode := element.SelectAttrValue("code", "")
 	elmName := element.SelectAttrValue("name", "")
 	elmType := element.SelectAttrValue("type", "")
@@ -17,9 +17,10 @@ func createDataset(x *xml, element *etree.Element, taskSequence int, path string
 
 	path = fmt.Sprintf("%s/createDataset[@code='%s']", path, elmCode)
 
-	x.addTranslation([]string{path, "name", elmName})
-	x.addTranslation([]string{path, "description", elmDescription})
-
+	if createTranslation {
+		x.addTranslation(path, "name", elmName)
+		x.addTranslation(path, "description", elmDescription)
+	}
 	if err := x.loadTranslation(path, "name", &elmName); err != nil {
 		return err
 	}
@@ -48,8 +49,9 @@ func createDataset(x *xml, element *etree.Element, taskSequence int, path string
 
 			pathOption := fmt.Sprintf("%s/options/option[@code='%s']", path, code)
 
-			x.addTranslation([]string{pathOption, "name", name})
-
+			if createTranslation {
+				x.addTranslation(pathOption, "name", name)
+			}
 			if err := x.loadTranslation(pathOption, "name", &name); err != nil {
 				return err
 			}
@@ -93,7 +95,7 @@ func createDataset(x *xml, element *etree.Element, taskSequence int, path string
 
 	x.Tasks = append(x.Tasks, task)
 
-	if err := x.addTask(element.ChildElements(), taskSequence, path); err != nil {
+	if err := x.addTask(element.ChildElements(), taskSequence, path, createTranslation); err != nil {
 		return err
 	}
 	return nil

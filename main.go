@@ -8,10 +8,11 @@ import (
 )
 
 var (
-	xmlPath             = flag.String("xmlPath", "", "Path to xml file")
-	translationPath     = flag.String("translationPath", "", "Path to translation file")
-	generateTranslation = flag.Bool("generateTranslation", false, "Generate a translation file")
-	trackJob            = flag.String("trackJob", "", "Job ID to track task execution")
+	create          = flag.String("create", "", "Create file")
+	from            = flag.String("from", "", "From path file")
+	to              = flag.String("to", "", "To path file")
+	withTranslation = flag.String("withTranslation", "", "Use translation to create another file")
+	trackJob        = flag.String("trackJob", "", "Job ID to track task execution")
 )
 
 func main() {
@@ -23,15 +24,17 @@ func main() {
 		return
 	}
 
-	if isFlagPassed("xmlPath") {
-		if err := xmlParser.GenerateJobTasks(*xmlPath, *translationPath, *generateTranslation); err != nil {
+	switch *create {
+	case "translation":
+		if err := xmlParser.CreateTranslation(*from, *to); err != nil {
 			fmt.Println(err.Error())
 			return
 		}
-	}
-
-	if isFlagPassed("trackJob") {
-
+	case "json-tasks":
+		if err := xmlParser.GenerateJobTasks(*from, *to, *withTranslation); err != nil {
+			fmt.Println(err.Error())
+			return
+		}
 	}
 }
 
