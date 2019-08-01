@@ -9,23 +9,17 @@ import (
 	"github.com/beevik/etree"
 )
 
-func createDataset(x *xml, element *etree.Element, taskSequence int, path string, createTranslation bool) error {
+func createDataset(x *xml, element *etree.Element, taskSequence int, path string) error {
 	elmCode := element.SelectAttrValue("code", "")
 	elmName := element.SelectAttrValue("name", "")
 	elmType := element.SelectAttrValue("type", "")
 	elmDescription := element.SelectAttrValue("desc", "")
 
 	path = fmt.Sprintf("%s/createDataset[@code='%s']", path, elmCode)
-
-	if createTranslation {
-		x.addTranslation(path, "name", elmName)
-		x.addTranslation(path, "description", elmDescription)
-	}
-	if err := x.loadTranslation(path, "name", &elmName); err != nil {
+	if err := x.processTranslation(path, "name", &elmName); err != nil {
 		return err
 	}
-
-	if err := x.loadTranslation(path, "description", &elmDescription); err != nil {
+	if err := x.processTranslation(path, "description", &elmDescription); err != nil {
 		return err
 	}
 
@@ -48,11 +42,7 @@ func createDataset(x *xml, element *etree.Element, taskSequence int, path string
 			orders = append(orders, code)
 
 			pathOption := fmt.Sprintf("%s/options/option[@code='%s']", path, code)
-
-			if createTranslation {
-				x.addTranslation(pathOption, "name", name)
-			}
-			if err := x.loadTranslation(pathOption, "name", &name); err != nil {
+			if err := x.processTranslation(pathOption, "name", &name); err != nil {
 				return err
 			}
 
@@ -95,7 +85,7 @@ func createDataset(x *xml, element *etree.Element, taskSequence int, path string
 
 	x.Tasks = append(x.Tasks, task)
 
-	if err := x.addTask(element.ChildElements(), taskSequence, path, createTranslation); err != nil {
+	if err := x.processTask(element.ChildElements(), taskSequence, path); err != nil {
 		return err
 	}
 	return nil

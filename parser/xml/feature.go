@@ -8,7 +8,7 @@ import (
 	"github.com/beevik/etree"
 )
 
-func createFeature(x *xml, element *etree.Element, taskSequence int, path string, createTranslation bool) error {
+func createFeature(x *xml, element *etree.Element, taskSequence int, path string) error {
 	elmModuleCode := element.SelectAttrValue("moduleCode", "")
 	elmCode := element.SelectAttrValue("code", "")
 	elmName := element.SelectAttrValue("name", "")
@@ -16,16 +16,10 @@ func createFeature(x *xml, element *etree.Element, taskSequence int, path string
 	permissions := make(map[string]interface{})
 
 	path = fmt.Sprintf("%s/createFeature[@moduleCode='%s'][@code='%s']", path, elmModuleCode, elmCode)
-
-	if createTranslation {
-		x.addTranslation(path, "name", elmName)
-		x.addTranslation(path, "description", elmDescription)
-	}
-	if err := x.loadTranslation(path, "name", &elmName); err != nil {
+	if err := x.processTranslation(path, "name", &elmName); err != nil {
 		return err
 	}
-
-	if err := x.loadTranslation(path, "description", &elmDescription); err != nil {
+	if err := x.processTranslation(path, "description", &elmDescription); err != nil {
 		return err
 	}
 
@@ -34,11 +28,7 @@ func createFeature(x *xml, element *etree.Element, taskSequence int, path string
 		name := p.SelectAttrValue("name", "")
 
 		pathPermission := fmt.Sprintf("%s/permission[@code='%s']", path, code)
-
-		if createTranslation {
-			x.addTranslation(pathPermission, "name", name)
-		}
-		if err := x.loadTranslation(pathPermission, "name", &name); err != nil {
+		if err := x.processTranslation(pathPermission, "name", &name); err != nil {
 			return err
 		}
 
@@ -64,7 +54,7 @@ func createFeature(x *xml, element *etree.Element, taskSequence int, path string
 
 	x.Tasks = append(x.Tasks, task)
 
-	if err := x.addTask(element.ChildElements(), taskSequence, path, createTranslation); err != nil {
+	if err := x.processTask(element.ChildElements(), taskSequence, path); err != nil {
 		return err
 	}
 	return nil

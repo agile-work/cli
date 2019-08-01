@@ -29,7 +29,7 @@
               <field code="username" name="Code" />
               <field code="full_name" name="Resource" />
               <field code="active" name="Active">
-                <filter type="constant" value="true" operator="=" readonly="false" />
+                <filter type="constant" value="true" valueType="boolean" operator="=" readonly="false" />
               </field>
             </fields>
           </dataset>
@@ -41,7 +41,7 @@
               <field code="username" name="Code" />
               <field code="full_name" name="Resource" />
               <field code="active" name="Active">
-                <filter type="constant" value="true" operator="=" readonly="false" />
+                <filter type="constant" value="true" valueType="boolean" operator="=" readonly="false" />
               </field>
             </fields>
           </dataset>
@@ -58,7 +58,7 @@
               <field code="full_name" name="Full Name" />
             </fields>
             <params>
-              <param code="filter_active" type="constant" value="true" />
+              <param code="filter_active" type="constant" value="true" valueType="boolean" />
             </params>
           </dataset>
         </task:createField>

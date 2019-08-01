@@ -11,7 +11,7 @@ import (
 	"github.com/beevik/etree"
 )
 
-func createField(x *xml, element *etree.Element, taskSequence int, path string, createTranslation bool) error {
+func createField(x *xml, element *etree.Element, taskSequence int, path string) error {
 	elmSchemaCode := element.SelectAttrValue("schemaCode", "")
 	elmType := element.SelectAttrValue("type", "")
 	elmCode := element.SelectAttrValue("code", "")
@@ -19,16 +19,10 @@ func createField(x *xml, element *etree.Element, taskSequence int, path string, 
 	elmDescription := element.SelectAttrValue("desc", "")
 
 	path = fmt.Sprintf("%s/createField[@schemaCode='%s'][@code='%s']", path, elmSchemaCode, elmCode)
-
-	if createTranslation {
-		x.addTranslation(path, "name", elmName)
-		x.addTranslation(path, "description", elmDescription)
-	}
-	if err := x.loadTranslation(path, "name", &elmName); err != nil {
+	if err := x.processTranslation(path, "name", &elmName); err != nil {
 		return err
 	}
-
-	if err := x.loadTranslation(path, "description", &elmDescription); err != nil {
+	if err := x.processTranslation(path, "description", &elmDescription); err != nil {
 		return err
 	}
 
@@ -44,156 +38,23 @@ func createField(x *xml, element *etree.Element, taskSequence int, path string, 
 
 	switch elmType {
 	case constants.FieldText:
-		elmDisplay := element.SelectAttrValue("display", "single_line")
-		payload = fmt.Sprintf(`{
-			%s,
-			"definitions": {
-				"display": "%s"
-			}
-		}`, payload, elmDisplay)
+		payload = processTextPayload(element, payload)
 		break
 	case constants.FieldNumber:
-		elmDisplay := element.SelectAttrValue("display", "number")
-		elmDecimals := element.SelectAttrValue("decimals", "0")
-		elmScale := element.SelectAttrValue("scale", "")
-		elmScaleItems := element.ChildElements()
-		payloadScale := ""
-		payloadDataset := ""
-		payloadAggRates := ""
-		if elmScale != "" {
-			payloadDataset = fmt.Sprintf(`"dataset_code": "%s"`, elmScale)
+		var err error
+		payload, err = processNumberPayload(element, payload)
+		if err != nil {
+			return err
 		}
-		if len(elmScaleItems) > 0 {
-			items := make(map[string]interface{})
-			for _, elmScaleItem := range elmScaleItems {
-				elmScaleItemValues := elmScaleItem.ChildElements()
-				values := make(map[string]interface{})
-				for _, elmScaleItemValue := range elmScaleItemValues {
-					values[elmScaleItemValue.Tag] = elmScaleItemValue.SelectAttrValue("value", "0")
-				}
-				items[elmScaleItem.Tag] = values
-			}
-			itemsByte, err := json.MarshalIndent(items, "", "  ")
-			if err != nil {
-				return err
-			}
-			payloadAggRates = fmt.Sprintf(`,
-					"aggr_rates": %s
-				`, string(itemsByte))
-		}
-		if payloadDataset != "" {
-			payloadScale = fmt.Sprintf(`,
-				"scale": {
-					%s
-					%s
-				}`, payloadDataset, payloadAggRates)
-		}
-		payload = fmt.Sprintf(`{
-			%s,
-			"definitions": {
-				"display": "%s",
-				"decimals": %s
-				%s
-			}
-		}`, payload, elmDisplay, elmDecimals, payloadScale)
 		break
 	case constants.FieldDate:
-		elmDisplay := element.SelectAttrValue("display", "date_time")
-		elmFormat := element.SelectAttrValue("format", "DD/MM/YYYY HH:MM")
-		payload = fmt.Sprintf(`{
-			%s,
-			"definitions": {
-				"display": "%s",
-				"format": "%s"
-			}
-		}`, payload, elmDisplay, elmFormat)
+		payload = processDatePayload(element, payload)
 		break
 	case constants.FieldLookup:
-		elmDisplay := element.SelectAttrValue("display", "select_single")
-		elemDataset := element.SelectElement("dataset")
-		elmDatasetCode := elemDataset.SelectAttrValue("code", "")
-		elmLookupType := elemDataset.SelectAttrValue("type", "")
-		if elmLookupType == constants.FieldLookupStatic {
-			payload = fmt.Sprintf(`{
-				%s,
-				"definitions": {
-					"display": "%s",
-					"dataset_code": "%s",
-					"lookup_type": "%s"     
-				}
-			}`, payload, elmDisplay, elmDatasetCode, elmLookupType)
-		} else {
-			elmLookupLabel := elemDataset.SelectAttrValue("lookup_label", "name")
-			elmLookupValue := elemDataset.SelectAttrValue("lookup_value", "code")
-			elmFields := elemDataset.SelectElement("fields").SelectElements("field")
-			elmGroups := elemDataset.SelectElement("groups")
-			fields := []map[string]interface{}{}
-			params := []map[string]interface{}{}
-			payloadSecurityGroups := ""
-			if elmGroups != nil {
-				payloadSecurityGroups = fmt.Sprintf(`, "security_groups": ["%s"]`, strings.Join(strings.Split(strings.Trim(elmGroups.Text(), " \n\r"), ","), `","`))
-			}
-			for _, elmField := range elmFields {
-				field := make(map[string]interface{})
-				code := elmField.SelectAttrValue("code", "")
-				name := elmField.SelectAttrValue("name", "")
-
-				pathField := fmt.Sprintf("%s/fields/field[@code='%s']", path, code)
-
-				if createTranslation {
-					x.addTranslation(pathField, "name", name)
-				}
-				if err := x.loadTranslation(pathField, "name", &name); err != nil {
-					return err
-				}
-
-				field["code"] = code
-				field["label"] = (json.RawMessage)([]byte(name))
-				elmFilter := elmField.SelectElement("filter")
-				if elmFilter != nil {
-					filter := make(map[string]interface{})
-					filter["value_type"] = elmFilter.SelectAttrValue("type", "")
-					filter["value"] = elmFilter.SelectAttrValue("value", "")
-					filter["operator"] = elmFilter.SelectAttrValue("operator", "")
-					filter["readonly"], _ = strconv.ParseBool(elmFilter.SelectAttrValue("readonly", "false"))
-					field["filter"] = filter
-				}
-				fields = append(fields, field)
-			}
-			fieldsByte, err := json.MarshalIndent(fields, "", "  ")
-			if err != nil {
-				return err
-			}
-			payloadParams := ""
-			elmParamsAgg := elemDataset.SelectElement("params")
-			if elmParamsAgg != nil {
-				elmParams := elmParamsAgg.SelectElements("param")
-				for _, elmParam := range elmParams {
-					param := make(map[string]interface{})
-					param["code"] = elmParam.SelectAttrValue("code", "")
-					param["value_type"] = elmParam.SelectAttrValue("type", "")
-					param["value"] = elmParam.SelectAttrValue("value", "")
-					params = append(params, param)
-				}
-				paramsByte, err := json.MarshalIndent(params, "", "  ")
-				if err != nil {
-					return err
-				}
-				payloadParams = fmt.Sprintf(`, "lookup_params": %s`, string(paramsByte))
-			}
-			payload = fmt.Sprintf(`{
-				%s,
-				"definitions": {
-					"display": "%s",
-					"dataset_code": "%s",
-					"lookup_type": "%s",
-					"lookup_label": "%s",
-					"lookup_value": "%s",
-					"lookup_fields": %s
-					%s
-					%s
-				}
-			}`, payload, elmDisplay, elmDatasetCode, elmLookupType, elmLookupLabel, elmLookupValue, string(fieldsByte), payloadParams, payloadSecurityGroups)
+		var err error
+		payload, err = processLookupPayload(x, element, payload, path)
+		if err != nil {
+			return err
 		}
 		break
 	}
@@ -207,8 +68,178 @@ func createField(x *xml, element *etree.Element, taskSequence int, path string, 
 
 	x.Tasks = append(x.Tasks, task)
 
-	if err := x.addTask(element.ChildElements(), taskSequence, path, createTranslation); err != nil {
+	if err := x.processTask(element.ChildElements(), taskSequence, path); err != nil {
 		return err
 	}
 	return nil
+}
+
+func processTextPayload(element *etree.Element, payload string) string {
+	elmDisplay := element.SelectAttrValue("display", "single_line")
+	payload = fmt.Sprintf(`{
+			%s,
+			"definitions": {
+				"display": "%s"
+			}
+		}`, payload, elmDisplay)
+	return payload
+}
+
+func processNumberPayload(element *etree.Element, payload string) (string, error) {
+	elmDisplay := element.SelectAttrValue("display", "number")
+	elmDecimals := element.SelectAttrValue("decimals", "0")
+	elmScale := element.SelectAttrValue("scale", "")
+	elmScaleItems := element.ChildElements()
+	payloadScale := ""
+	payloadDataset := ""
+	payloadAggRates := ""
+	if elmScale != "" {
+		payloadDataset = fmt.Sprintf(`"dataset_code": "%s"`, elmScale)
+	}
+	if len(elmScaleItems) > 0 {
+		items := make(map[string]interface{})
+		for _, elmScaleItem := range elmScaleItems {
+			elmScaleItemValues := elmScaleItem.ChildElements()
+			values := make(map[string]interface{})
+			for _, elmScaleItemValue := range elmScaleItemValues {
+				values[elmScaleItemValue.Tag] = elmScaleItemValue.SelectAttrValue("value", "0")
+			}
+			items[elmScaleItem.Tag] = values
+		}
+		itemsByte, err := json.MarshalIndent(items, "", "  ")
+		if err != nil {
+			return "", err
+		}
+		payloadAggRates = fmt.Sprintf(`,
+					"aggr_rates": %s
+				`, string(itemsByte))
+	}
+	if payloadDataset != "" {
+		payloadScale = fmt.Sprintf(`,
+				"scale": {
+					%s
+					%s
+				}`, payloadDataset, payloadAggRates)
+	}
+	payload = fmt.Sprintf(`{
+			%s,
+			"definitions": {
+				"display": "%s",
+				"decimals": %s
+				%s
+			}
+		}`, payload, elmDisplay, elmDecimals, payloadScale)
+	return payload, nil
+}
+
+func processDatePayload(element *etree.Element, payload string) string {
+	elmDisplay := element.SelectAttrValue("display", "date_time")
+	elmFormat := element.SelectAttrValue("format", "DD/MM/YYYY HH:MM")
+	payload = fmt.Sprintf(`{
+			%s,
+			"definitions": {
+				"display": "%s",
+				"format": "%s"
+			}
+		}`, payload, elmDisplay, elmFormat)
+	return payload
+}
+
+func processLookupPayload(x *xml, element *etree.Element, payload, path string) (string, error) {
+	elmDisplay := element.SelectAttrValue("display", "select_single")
+	elemDataset := element.SelectElement("dataset")
+	elmDatasetCode := elemDataset.SelectAttrValue("code", "")
+	elmLookupType := elemDataset.SelectAttrValue("type", "")
+	if elmLookupType == constants.FieldLookupStatic {
+		payload = fmt.Sprintf(`{
+				%s,
+				"definitions": {
+					"display": "%s",
+					"dataset_code": "%s",
+					"lookup_type": "%s"     
+				}
+			}`, payload, elmDisplay, elmDatasetCode, elmLookupType)
+	} else {
+		elmLookupLabel := elemDataset.SelectAttrValue("lookup_label", "name")
+		elmLookupValue := elemDataset.SelectAttrValue("lookup_value", "code")
+		elmFields := elemDataset.SelectElement("fields").SelectElements("field")
+		elmGroups := elemDataset.SelectElement("groups")
+		fields := []map[string]interface{}{}
+		params := []map[string]interface{}{}
+		payloadSecurityGroups := ""
+		if elmGroups != nil {
+			payloadSecurityGroups = fmt.Sprintf(`, "security_groups": ["%s"]`, strings.Join(strings.Split(strings.Trim(elmGroups.Text(), " \n\r"), ","), `","`))
+		}
+		for _, elmField := range elmFields {
+			field := make(map[string]interface{})
+			code := elmField.SelectAttrValue("code", "")
+			name := elmField.SelectAttrValue("name", "")
+
+			pathField := fmt.Sprintf("%s/fields/field[@code='%s']", path, code)
+			if err := x.processTranslation(pathField, "name", &name); err != nil {
+				return "", err
+			}
+
+			field["code"] = code
+			field["label"] = (json.RawMessage)([]byte(name))
+			elmFilter := elmField.SelectElement("filter")
+			if elmFilter != nil {
+				filter := make(map[string]interface{})
+				filter["value_type"] = elmFilter.SelectAttrValue("type", "")
+				filter["value"] = castToValueType(elmFilter.SelectAttrValue("value", ""), elmFilter.SelectAttrValue("valueType", "string"))
+				filter["operator"] = elmFilter.SelectAttrValue("operator", "")
+				filter["readonly"], _ = strconv.ParseBool(elmFilter.SelectAttrValue("readonly", "false"))
+				field["filter"] = filter
+			}
+			fields = append(fields, field)
+		}
+		fieldsByte, err := json.MarshalIndent(fields, "", "  ")
+		if err != nil {
+			return "", err
+		}
+		payloadParams := ""
+		elmParamsAgg := elemDataset.SelectElement("params")
+		if elmParamsAgg != nil {
+			elmParams := elmParamsAgg.SelectElements("param")
+			for _, elmParam := range elmParams {
+				param := make(map[string]interface{})
+				param["code"] = elmParam.SelectAttrValue("code", "")
+				param["value_type"] = elmParam.SelectAttrValue("type", "")
+				param["value"] = castToValueType(elmParam.SelectAttrValue("value", ""), elmParam.SelectAttrValue("valueType", "string"))
+				params = append(params, param)
+			}
+			paramsByte, err := json.MarshalIndent(params, "", "  ")
+			if err != nil {
+				return "", err
+			}
+			payloadParams = fmt.Sprintf(`, "lookup_params": %s`, string(paramsByte))
+		}
+		payload = fmt.Sprintf(`{
+				%s,
+				"definitions": {
+					"display": "%s",
+					"dataset_code": "%s",
+					"lookup_type": "%s",
+					"lookup_label": "%s",
+					"lookup_value": "%s",
+					"lookup_fields": %s
+					%s
+					%s
+				}
+			}`, payload, elmDisplay, elmDatasetCode, elmLookupType, elmLookupLabel, elmLookupValue, string(fieldsByte), payloadParams, payloadSecurityGroups)
+	}
+	return payload, nil
+}
+
+func castToValueType(value, valueType string) interface{} {
+	var result interface{}
+	switch valueType {
+	case "string":
+		result = value
+	case "number":
+		result, _ = strconv.ParseInt(value, 0, 0)
+	case "boolean":
+		result, _ = strconv.ParseBool(value)
+	}
+	return result
 }
